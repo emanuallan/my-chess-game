@@ -136,28 +136,44 @@ const Tile = ({
 				case "rook":
 					const legalMoves = [];
 
+					//right
 					let i2 = 1;
-					while (coordinates.x + i2 < 8 && !getPiece(coordinates.x + i2, coordinates.y)) {
+					while (coordinates.x + i2 < 8) {
+						const intersectingPiece = getPiece(coordinates.x + i2, coordinates.y);
+						if (intersectingPiece?.player === 1) break;
 						legalMoves.push({ x: coordinates.x + i2, y: coordinates.y });
+						if (intersectingPiece?.player === 0) break;
 						i2++;
 					}
 
-					let j2 = 1;
-					while (coordinates.y + j2 < 8 && !getPiece(coordinates.x, coordinates.y + j2)) {
-						legalMoves.push({ x: coordinates.x, y: coordinates.y + j2 });
-						j2++;
+					//down
+					i2 = 1;
+					while (coordinates.y + i2 < 8) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y + i2);
+						if (intersectingPiece?.player === 1) break;
+						legalMoves.push({ x: coordinates.x, y: coordinates.y + i2 });
+						if (intersectingPiece?.player === 0) break;
+						i2++;
 					}
 
-					let l2 = 1;
-					while (coordinates.x - l2 >= 0 && !getPiece(coordinates.x - l2, coordinates.y)) {
-						legalMoves.push({ x: coordinates.x - l2, y: coordinates.y });
-						l2++;
+					//left
+					i2 = 1;
+					while (coordinates.x - i2 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - i2, coordinates.y);
+						if (intersectingPiece?.player === 1) break;
+						legalMoves.push({ x: coordinates.x - i2, y: coordinates.y });
+						if (intersectingPiece?.player === 0) break;
+						i2++;
 					}
 
-					let k2 = 1;
-					while (coordinates.y - k2 >= 0 && !getPiece(coordinates.x, coordinates.y - k2)) {
-						legalMoves.push({ x: coordinates.x, y: coordinates.y - k2 });
-						k2++;
+					//up
+					i2 = 1;
+					while (coordinates.y - i2 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y - i2);
+						if (intersectingPiece?.player === 1) break;
+						legalMoves.push({ x: coordinates.x, y: coordinates.y - i2 });
+						if (intersectingPiece?.player === 0) break;
+						i2++;
 					}
 
 					setHighlighted(legalMoves);
