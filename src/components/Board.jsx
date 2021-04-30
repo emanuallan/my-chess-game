@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import Tile from "./Tile";
 import io from "socket.io-client";
 
-const socket = io("http://localhost/4000");
+const socket = io("ws://localhost:4000", {
+	transports: ["websocket", "polling"],
+});
 const rows = ["8", "7", "6", "5", "4", "3", "2", "1"];
 const columns = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
@@ -95,21 +97,16 @@ function Board() {
 		],
 	]);
 
-	// const id = useRef(`${Date.now()}`)
-	// const board = useRef(null);
-	// const remote = useRef(false);
+	useEffect(() => {
+		socket.on("connect", () => {
+			socket.emit("new-move", { position: currentPosition, turn: turn });
+		});
 
-	// useEffect(() => {
-	// 	socket.on("new-remote-operations", ({boardId, ops}) => {
-	// 		if (id.current !== boardId) {
-	// 			remote.current = true;
-	// 			JSON.parse(ops).forEach((op) =>
-	// 			board.current!.applyOperation(op)
-	// 		)
-	// 		}
-
-	// 	});
-	// }, []);
+		socket.on("receive-new-move", (newPosition) => {
+			setCurrentPosition(newPosition.position);
+			setTurn(newPosition.turn);
+		});
+	}, []);
 
 	const getPiece = (rIndex, cIndex) => {
 		if (rIndex > 7 || cIndex > 7 || rIndex < 0 || cIndex < 0) {
@@ -130,6 +127,8 @@ function Board() {
 		currentPosition[rIndex][cIndex] = piece;
 		const newPosition = JSON.parse(JSON.stringify(currentPosition));
 		setCurrentPosition(newPosition);
+		let newTurn = turn ? 0 : 1;
+		socket.emit("new-move", { position: newPosition, turn: newTurn });
 	};
 
 	const removePiece = (rIndex, cIndex) => {

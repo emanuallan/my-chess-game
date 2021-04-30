@@ -1,5 +1,4 @@
 import React from "react";
-import "./App.css";
 import Board from "components/Board";
 
 function App() {
@@ -7,10 +6,11 @@ function App() {
 		<div
 			style={{
 				backgroundColor: "gray",
-				height: "100vh",
+				minHeight: "100vh",
 				display: "flex",
 				justifyContent: "center",
 				alignItems: "center",
+				minWidth: "100%",
 			}}
 		>
 			<Board />
