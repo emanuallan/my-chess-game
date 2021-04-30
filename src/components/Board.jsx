@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Tile from "./Tile";
+import io from "socket.io-client";
 
+const socket = io("http://localhost/4000");
 const rows = ["8", "7", "6", "5", "4", "3", "2", "1"];
 const columns = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
@@ -93,6 +95,22 @@ function Board() {
 		],
 	]);
 
+	// const id = useRef(`${Date.now()}`)
+	// const board = useRef(null);
+	// const remote = useRef(false);
+
+	// useEffect(() => {
+	// 	socket.on("new-remote-operations", ({boardId, ops}) => {
+	// 		if (id.current !== boardId) {
+	// 			remote.current = true;
+	// 			JSON.parse(ops).forEach((op) =>
+	// 			board.current!.applyOperation(op)
+	// 		)
+	// 		}
+
+	// 	});
+	// }, []);
+
 	const getPiece = (rIndex, cIndex) => {
 		if (rIndex > 7 || cIndex > 7 || rIndex < 0 || cIndex < 0) {
 			return false;
@@ -122,7 +140,15 @@ function Board() {
 
 	return (
 		<div>
-			<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					flexWrap: "wrap-reverse",
+					maxWidth: 800,
+				}}
+			>
 				<div style={{ display: "flex", marginBottom: 8, height: 60 }}>
 					{blacksTakenPieces.map((piece, index) => (
 						<img
