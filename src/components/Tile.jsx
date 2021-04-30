@@ -11,6 +11,8 @@ const Tile = ({
 	getPiece,
 	removePiece,
 	setPiece,
+	turn,
+	setTurn,
 	chessCoordinates,
 }) => {
 	const highlight = useMemo(() => {
@@ -38,6 +40,11 @@ const Tile = ({
 			setPiece(coordinates.x, coordinates.y, { piece: selected.piece, player: selected.player });
 			setHighlighted([]);
 			setSelected(null);
+			if (turn) {
+				setTurn(0);
+			} else {
+				setTurn(1);
+			}
 		} else {
 			const selectPiece = {
 				...piece,
@@ -45,146 +52,364 @@ const Tile = ({
 				y: coordinates.y,
 			};
 
+			if (piece.player !== turn) {
+				return;
+			}
+
 			setSelected(selectPiece);
 			setHighlighted([]);
+
 			switch (piece.piece) {
-				case "pawn":
+				case "pawn": {
+					const legalMoves = [];
+
+					if (piece.player) {
+						if (getPiece(coordinates.x - 1, coordinates.y - 1).player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y - 1 });
+						}
+						if (getPiece(coordinates.x + 1, coordinates.y - 1).player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y - 1 });
+						}
+					} else {
+						const lPiece = getPiece(coordinates.x - 1, coordinates.y + 1).player;
+						const rPiece = getPiece(coordinates.x + 1, coordinates.y + 1).player;
+						if (lPiece && lPiece.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y + 1 });
+						}
+						if (rPiece && rPiece.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y + 1 });
+						}
+					}
+
 					if ((coordinates.y === 6 && piece.player === 1) || (coordinates.y === 1 && piece.player === 0)) {
+						let possibleMoves;
 						if (piece.player) {
-							const possibleMoves = [
+							possibleMoves = [
 								{ x: coordinates.x, y: coordinates.y - 1 },
 								{ x: coordinates.x, y: coordinates.y - 2 },
 							];
-							const legalMoves = [];
-							possibleMoves.forEach((move) => {
-								if (!getPiece(move.x, move.y)) {
-									legalMoves.push(move);
-								}
-							});
-							setHighlighted(legalMoves);
 						} else {
-							const possibleMoves = [
+							possibleMoves = [
 								{ x: coordinates.x, y: coordinates.y + 1 },
 								{ x: coordinates.x, y: coordinates.y + 2 },
 							];
-							const legalMoves = [];
-							possibleMoves.forEach((move) => {
-								if (!getPiece(move.x, move.y)) {
-									legalMoves.push(move);
-								}
-							});
-							setHighlighted(legalMoves);
 						}
+
+						possibleMoves.every((move) => {
+							if (!getPiece(move.x, move.y)) {
+								legalMoves.push(move);
+								return true;
+							}
+							return false;
+						});
+						setHighlighted(legalMoves);
 					} else {
 						if (piece.player === 1) {
 							if (!getPiece(coordinates.x, coordinates.y - 1))
-								setHighlighted([{ x: coordinates.x, y: coordinates.y - 1 }]);
+								legalMoves.push({ x: coordinates.x, y: coordinates.y - 1 });
 						} else if (piece.player === 0) {
 							if (!getPiece(coordinates.x, coordinates.y + 1))
-								setHighlighted([{ x: coordinates.x, y: coordinates.y + 1 }]);
+								legalMoves.push({ x: coordinates.x, y: coordinates.y + 1 });
 						}
+						setHighlighted(legalMoves);
 					}
 					break;
+				}
 				case "knight":
-					console.log("knight");
+					const legalMoves = [];
+
+					if (coordinates.x + 1 < 8 && coordinates.y + 2 < 8) {
+						const intersectingPiece = getPiece(coordinates.x + 1, coordinates.y + 2);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y + 2 });
+						}
+					}
+
+					if (coordinates.x + 1 < 8 && coordinates.y - 2 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x + 1, coordinates.y - 2);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y - 2 });
+						}
+					}
+
+					if (coordinates.x - 1 >= 0 && coordinates.y + 2 < 8) {
+						const intersectingPiece = getPiece(coordinates.x - 1, coordinates.y + 2);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y + 2 });
+						}
+					}
+
+					if (coordinates.x - 1 >= 0 && coordinates.y - 2 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - 1, coordinates.y - 2);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y - 2 });
+						}
+					}
+
+					if (coordinates.x + 2 < 8 && coordinates.y + 1 < 8) {
+						const intersectingPiece = getPiece(coordinates.x + 2, coordinates.y + 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 2, y: coordinates.y + 1 });
+						}
+					}
+
+					if (coordinates.x - 2 >= 0 && coordinates.y + 1 < 8) {
+						const intersectingPiece = getPiece(coordinates.x - 2, coordinates.y + 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 2, y: coordinates.y + 1 });
+						}
+					}
+
+					if (coordinates.x - 2 >= 0 && coordinates.y - 1 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - 2, coordinates.y - 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 2, y: coordinates.y - 1 });
+						}
+					}
+
+					if (coordinates.x + 2 < 8 && coordinates.y - 1 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x + 2, coordinates.y - 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 2, y: coordinates.y - 1 });
+						}
+					}
+
+					setHighlighted(legalMoves);
 					break;
-				case "bishop":
-					const possibleMoves = [];
+				case "bishop": {
+					const legalMoves = [];
 
 					let i = 1;
-					while (
-						coordinates.x + i < 8 &&
-						coordinates.y + i < 8 &&
-						!getPiece(coordinates.x + i, coordinates.y + i)
-					) {
-						possibleMoves.push({ x: coordinates.x + i, y: coordinates.y + i });
+					while (coordinates.x + i < 8 && coordinates.y + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x + i, coordinates.y + i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x + i, y: coordinates.y + i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
 						i++;
 					}
 
-					let j = 1;
-					while (
-						coordinates.x + j < 8 &&
-						coordinates.y - j >= 0 &&
-						!getPiece(coordinates.x + j, coordinates.y - j)
-					) {
-						possibleMoves.push({ x: coordinates.x + j, y: coordinates.y - j });
-						j++;
+					i = 1;
+					while (coordinates.x + i < 8 && coordinates.y - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x + i, coordinates.y - i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x + i, y: coordinates.y - i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
-					let l = 1;
-					while (
-						coordinates.x - l >= 0 &&
-						coordinates.y + l < 8 &&
-						!getPiece(coordinates.x - l, coordinates.y + l)
-					) {
-						possibleMoves.push({ x: coordinates.x - l, y: coordinates.y + l });
-						l++;
+					i = 1;
+					while (coordinates.x - i >= 0 && coordinates.y + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x - i, coordinates.y + i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x - i, y: coordinates.y + i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
-					let k = 1;
-					while (
-						coordinates.y - k >= 0 &&
-						coordinates.x - k >= 0 &&
-						!getPiece(coordinates.x - k, coordinates.y - k)
-					) {
-						possibleMoves.push({ x: coordinates.x - k, y: coordinates.y - k });
-						k++;
+					i = 1;
+					while (coordinates.y - i >= 0 && coordinates.x - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - i, coordinates.y - i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x - i, y: coordinates.y - i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
-					setHighlighted(possibleMoves);
+					setHighlighted(legalMoves);
 					break;
-				case "rook":
+				}
+				case "rook": {
 					const legalMoves = [];
 
 					//right
-					let i2 = 1;
-					while (coordinates.x + i2 < 8) {
-						const intersectingPiece = getPiece(coordinates.x + i2, coordinates.y);
-						if (intersectingPiece?.player === 1) break;
-						legalMoves.push({ x: coordinates.x + i2, y: coordinates.y });
-						if (intersectingPiece?.player === 0) break;
-						i2++;
+					let i = 1;
+					while (coordinates.x + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x + i, coordinates.y);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x + i, y: coordinates.y });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
 					//down
-					i2 = 1;
-					while (coordinates.y + i2 < 8) {
-						const intersectingPiece = getPiece(coordinates.x, coordinates.y + i2);
-						if (intersectingPiece?.player === 1) break;
-						legalMoves.push({ x: coordinates.x, y: coordinates.y + i2 });
-						if (intersectingPiece?.player === 0) break;
-						i2++;
+					i = 1;
+					while (coordinates.y + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y + i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x, y: coordinates.y + i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
 					//left
-					i2 = 1;
-					while (coordinates.x - i2 >= 0) {
-						const intersectingPiece = getPiece(coordinates.x - i2, coordinates.y);
-						if (intersectingPiece?.player === 1) break;
-						legalMoves.push({ x: coordinates.x - i2, y: coordinates.y });
-						if (intersectingPiece?.player === 0) break;
-						i2++;
+					i = 1;
+					while (coordinates.x - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - i, coordinates.y);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x - i, y: coordinates.y });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
 					//up
-					i2 = 1;
-					while (coordinates.y - i2 >= 0) {
-						const intersectingPiece = getPiece(coordinates.x, coordinates.y - i2);
-						if (intersectingPiece?.player === 1) break;
-						legalMoves.push({ x: coordinates.x, y: coordinates.y - i2 });
-						if (intersectingPiece?.player === 0) break;
-						i2++;
+					i = 1;
+					while (coordinates.y - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y - i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x, y: coordinates.y - i });
+						if (intersectingPiece && intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
 					}
 
 					setHighlighted(legalMoves);
 
 					break;
-				case "queen":
-					console.log("queen");
+				}
+				case "queen": {
+					const legalMoves = [];
+
+					//right
+					let i = 1;
+					while (coordinates.x + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x + i, coordinates.y);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x + i, y: coordinates.y });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					//down
+					i = 1;
+					while (coordinates.y + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y + i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x, y: coordinates.y + i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					//left
+					i = 1;
+					while (coordinates.x - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - i, coordinates.y);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x - i, y: coordinates.y });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					//up
+					i = 1;
+					while (coordinates.y - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y - i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x, y: coordinates.y - i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					i = 1;
+					while (coordinates.x + i < 8 && coordinates.y + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x + i, coordinates.y + i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x + i, y: coordinates.y + i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					i = 1;
+					while (coordinates.x + i < 8 && coordinates.y - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x + i, coordinates.y - i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x + i, y: coordinates.y - i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					i = 1;
+					while (coordinates.x - i >= 0 && coordinates.y + i < 8) {
+						const intersectingPiece = getPiece(coordinates.x - i, coordinates.y + i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x - i, y: coordinates.y + i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					i = 1;
+					while (coordinates.y - i >= 0 && coordinates.x - i >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - i, coordinates.y - i);
+						if (intersectingPiece?.player === turn) break;
+						legalMoves.push({ x: coordinates.x - i, y: coordinates.y - i });
+						if (intersectingPiece && intersectingPiece?.player !== turn) break;
+						i++;
+					}
+
+					setHighlighted(legalMoves);
 					break;
-				case "king":
-					console.log("king");
+				}
+				case "king": {
+					const legalMoves = [];
+
+					if (coordinates.x + 1 < 8) {
+						const intersectingPiece = getPiece(coordinates.x + 1, coordinates.y);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y });
+						}
+					}
+
+					if (coordinates.y + 1 < 8) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y + 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x, y: coordinates.y + 1 });
+						}
+					}
+
+					if (coordinates.x - 1 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - 1, coordinates.y);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y });
+						}
+					}
+
+					if (coordinates.y - 1 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x, coordinates.y - 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x, y: coordinates.y - 1 });
+						}
+					}
+
+					if (coordinates.x + 1 < 8 && coordinates.y + 1 < 8) {
+						const intersectingPiece = getPiece(coordinates.x + 1, coordinates.y + 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y + 1 });
+						}
+					}
+
+					if (coordinates.x - 1 >= 0 && coordinates.y + 1 < 8) {
+						const intersectingPiece = getPiece(coordinates.x - 1, coordinates.y + 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y + 1 });
+						}
+					}
+
+					if (coordinates.x - 1 >= 0 && coordinates.y - 1 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x - 1, coordinates.y - 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y - 1 });
+						}
+					}
+
+					if (coordinates.x + 1 < 8 && coordinates.y - 1 >= 0) {
+						const intersectingPiece = getPiece(coordinates.x + 1, coordinates.y - 1);
+						if (!intersectingPiece || intersectingPiece?.player !== turn) {
+							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y - 1 });
+						}
+					}
+
+					setHighlighted(legalMoves);
+
 					break;
+				}
 				default:
 					setSelected(null);
 					setHighlighted([]);
@@ -196,6 +421,7 @@ const Tile = ({
 		<div
 			onClick={handlePiece}
 			style={{
+				cursor: `${piece.player === turn || highlight ? "pointer" : "auto"}`,
 				height: `${samePiece || highlight ? "94px" : "100px"}`,
 				width: `${samePiece || highlight ? "94px" : "100px"}`,
 				backgroundColor: `${light ? "#DCBB6C" : "#B28748"}`,
