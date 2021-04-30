@@ -64,15 +64,18 @@ const Tile = ({
 					const legalMoves = [];
 
 					if (piece.player) {
-						if (getPiece(coordinates.x - 1, coordinates.y - 1).player !== turn) {
+						const lPiece = getPiece(coordinates.x - 1, coordinates.y - 1);
+						const rPiece = getPiece(coordinates.x + 1, coordinates.y - 1);
+
+						if (lPiece && lPiece.player !== turn) {
 							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y - 1 });
 						}
-						if (getPiece(coordinates.x + 1, coordinates.y - 1).player !== turn) {
+						if (rPiece && rPiece.player !== turn) {
 							legalMoves.push({ x: coordinates.x + 1, y: coordinates.y - 1 });
 						}
 					} else {
-						const lPiece = getPiece(coordinates.x - 1, coordinates.y + 1).player;
-						const rPiece = getPiece(coordinates.x + 1, coordinates.y + 1).player;
+						const lPiece = getPiece(coordinates.x - 1, coordinates.y + 1);
+						const rPiece = getPiece(coordinates.x + 1, coordinates.y + 1);
 						if (lPiece && lPiece.player !== turn) {
 							legalMoves.push({ x: coordinates.x - 1, y: coordinates.y + 1 });
 						}
