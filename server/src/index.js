@@ -8,15 +8,20 @@ const io = require("socket.io")(http);
 
 let currentPosition = [];
 let turn = 1;
+let blacksTakenPieces = [];
+let whitesTakenPieces = [];
+
 io.on("connection", function (socket) {
 	console.log("a user connected");
 
-	socket.on("new-move", function (position) {
+	socket.on("new-position", function (position) {
 		console.log("new move");
 		currentPosition = position.position;
 		turn = position.turn;
+		blacksTakenPieces = position.blacksTakenPieces;
+		whitesTakenPieces = position.whitesTakenPieces;
 
-		io.emit("receive-new-move", { position: currentPosition, turn: turn });
+		io.emit("receive-new-position", { position: currentPosition, turn, blacksTakenPieces, whitesTakenPieces });
 	});
 });
 

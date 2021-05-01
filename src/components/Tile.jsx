@@ -420,6 +420,8 @@ const Tile = ({
 		}
 	};
 
+	console.log("render");
+
 	return (
 		<div
 			onClick={handlePiece}

@@ -99,12 +99,14 @@ function Board() {
 
 	useEffect(() => {
 		socket.on("connect", () => {
-			socket.emit("new-move", { position: currentPosition, turn: turn });
+			socket.emit("new-position", { position: currentPosition, turn, blacksTakenPieces, whitesTakenPieces });
 		});
 
-		socket.on("receive-new-move", (newPosition) => {
+		socket.on("receive-new-position", (newPosition) => {
 			setCurrentPosition(newPosition.position);
 			setTurn(newPosition.turn);
+			setWhitesTakenPieces(newPosition.whitesTakenPieces);
+			setBlacksTakenPieces(newPosition.blacksTakenPieces);
 		});
 	}, []);
 
@@ -117,18 +119,22 @@ function Board() {
 
 	const setPiece = (rIndex, cIndex, piece) => {
 		const takenPiece = getPiece(rIndex, cIndex);
+
 		if (takenPiece) {
 			if (turn) {
-				setBlacksTakenPieces([...blacksTakenPieces, takenPiece]);
+				blacksTakenPieces.push(takenPiece);
+				setBlacksTakenPieces([...blacksTakenPieces]);
 			} else {
-				setWhitesTakenPieces([...whitesTakenPieces, takenPiece]);
+				whitesTakenPieces.push(takenPiece);
+				setWhitesTakenPieces([...whitesTakenPieces]);
 			}
 		}
 		currentPosition[rIndex][cIndex] = piece;
 		const newPosition = JSON.parse(JSON.stringify(currentPosition));
 		setCurrentPosition(newPosition);
 		let newTurn = turn ? 0 : 1;
-		socket.emit("new-move", { position: newPosition, turn: newTurn });
+
+		socket.emit("new-position", { position: newPosition, turn: newTurn, blacksTakenPieces, whitesTakenPieces });
 	};
 
 	const removePiece = (rIndex, cIndex) => {
@@ -149,7 +155,7 @@ function Board() {
 				}}
 			>
 				<div style={{ display: "flex", marginBottom: 8, height: 60 }}>
-					{blacksTakenPieces.map((piece, index) => (
+					{whitesTakenPieces.map((piece, index) => (
 						<img
 							key={index}
 							src={`/pieces/${piece.player ? `light-${piece.piece}.png` : `${piece.piece}.png`}`}
@@ -192,7 +198,7 @@ function Board() {
 								selected={selected}
 								setSelected={setSelected}
 								removePiece={removePiece}
-								key={index}
+								key={c + r + currentPosition[rIndex][cIndex].piece}
 								turn={turn}
 								setTurn={setTurn}
 								chessCoordinates={c + r}
@@ -205,7 +211,7 @@ function Board() {
 				)}
 			</div>
 			<div style={{ display: "flex", marginTop: 8, height: 60 }}>
-				{whitesTakenPieces.map((piece, index) => (
+				{blacksTakenPieces.map((piece, index) => (
 					<img
 						key={index}
 						src={`/pieces/${piece.player ? `light-${piece.piece}.png` : `${piece.piece}.png`}`}
